@@ -14,7 +14,8 @@ CORS(app)
 
 ledState = False
 
-
+# hostIp = '0.0.0.0'
+hostIp = '127.0.0.1'
 
 @app.route('/led', methods=['GET'])
 def led_change():
@@ -22,9 +23,26 @@ def led_change():
     ledState = not ledState
 
     if ledState:
-        return jsonify(ledState="ON")
-    return jsonify(ledState="OFF")
+        return jsonify({"ledState":"ON"})
+    return jsonify({"ledState":"OFF"})
 
+
+@app.route('/speed', methods=['GET'])
+def motor_change():
+
+    slider = int(request.args.get('slider',0))
+    
+
+    if slider == 0:
+        direction = 'STOP'
+    else:
+        if slider > 0:
+            direction = 'FORWARD'
+        else:
+            direction = 'BACKWARDS'
+
+    
+    return jsonify({"speed": abs(slider), "direction": direction})
 
 
 
@@ -35,4 +53,4 @@ def greet():
 
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(host = hostIp, port=5000)
