@@ -14,21 +14,21 @@
 
 .mainApp {
     display: flex;
-    height: 100vh; /* Full height of the screen */
+    height: 100vh; 
 }
 .navbar {
-    width: 20%; /* Takes up 20% of the screen */
-    background-color: #1f2937; /* Dark gray (Tailwind bg-gray-800) */
-    color: white; /* White text */
-    height: 100vh; /* Full height */
+    width: 20%; 
+    background-color: #1f2937; 
+    color: white; 
+    height: 100vh; 
     display: flex;
-    flex-direction: column; /* Stack items vertically */
-    overflow-y: auto; /* Scroll if content overflows */
+    flex-direction: column; 
+    overflow-y: auto; 
   }
   
   .rest {
-    width: 80%; /* Takes up the remaining 80% */
-    padding: 1rem; /* Some padding for spacing */
-    overflow-y: auto; /* Scrollable if needed */
-    background-color: #407bcd; /* Dark gray (Tailwind bg-gray-800) */
+    width: 80%;
+    padding: 1rem; 
+    overflow-y: auto; 
+    background-color: #407bcd; 
   }
