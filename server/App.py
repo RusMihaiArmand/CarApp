@@ -13,11 +13,13 @@ CORS(app)
 
 
 ledState = False
+speed = 0
+direction = 'STOP'
 
-# hostIp = '0.0.0.0'
+#hostIp = '0.0.0.0'
 hostIp = '127.0.0.1'
 
-@app.route('/led', methods=['GET'])
+@app.route('/change_led', methods=['GET'])
 def led_change():
     global ledState
     ledState = not ledState
@@ -27,10 +29,21 @@ def led_change():
     return jsonify({"ledState":"OFF"})
 
 
-@app.route('/speed', methods=['GET'])
+@app.route('/state_led', methods=['GET'])
+def led_state():
+    global ledState
+    
+    if ledState:
+        return jsonify({"ledState":"ON"})
+    return jsonify({"ledState":"OFF"})
+
+
+@app.route('/change_speed', methods=['GET'])
 def motor_change():
+    global speed, direction
 
     slider = int(request.args.get('slider',0))
+    speed = abs(slider)
     
 
     if slider == 0:
@@ -42,9 +55,15 @@ def motor_change():
             direction = 'BACKWARDS'
 
     
-    return jsonify({"speed": abs(slider), "direction": direction})
+    return jsonify({"speed": speed, "direction": direction})
 
 
+
+@app.route('/state_speed', methods=['GET'])
+def motor_state():
+
+    
+    return jsonify({"speed": speed, "direction": direction})
 
 
 @app.route('/api/greet', methods=['GET'])

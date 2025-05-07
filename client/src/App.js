@@ -13,21 +13,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 
 function App() {
-  const [message, setMessage] = useState('');
-
-
-  useEffect(() => {
-    
-    axios.get('http://localhost:5000/api/greet')
-      .then(response => {
-        setMessage(response.data.message);
-      })
-      .catch(error => {
-        console.error("There was an error fetching the message!", error);
-      });
-  }, []);
-
- 
+  
 
   return (
     <Router>
@@ -45,8 +31,6 @@ function App() {
       </div>
     </Router>
   );
-
-
 
 
 }

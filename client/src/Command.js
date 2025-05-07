@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const Command = () => {
 
@@ -8,13 +8,51 @@ const Command = () => {
   const [speed, setSpeed] = useState(0);
   const [mototDirection, setMotorDiction] = useState('STOP');
 
-  // const baseUrl = "http://0.0.0.0:5000"
+
   const baseUrl = "http://127.0.0.1:5000"
+
+
+  useEffect(() => {
+    const fetchLedState = async () => {
+      try {
+        const response = await fetch(baseUrl + "/state_led");
+        const data = await response.json();
+        setLedState(data.ledState);
+      } catch (error) {
+        console.error("Failed to fetch LED state:", error);
+      }
+    };
+
+
+    const fetchSpeedState = async () => {
+      try {
+        const response = await fetch(baseUrl + "/state_speed");
+        const data = await response.json();
+        setSpeed(data.speed);
+        setMotorDiction(data.direction);
+
+        
+        if(data.direction=='BACKWARDS'){
+          setSliderState(-data.speed);
+        }
+        else{
+          setSliderState(data.speed);
+        }
+
+      } catch (error) {
+        console.error("Failed to fetch Speed state:", error);
+      }
+    };
+
+    fetchLedState();
+    fetchSpeedState();
+  }, []);
+
 
 
   const changeState = async () => {
     try {
-      const response = await fetch(baseUrl + "/led");
+      const response = await fetch(baseUrl + "/change_led");
       const data = await response.json();
 
       console.log(data);
@@ -24,12 +62,13 @@ const Command = () => {
       setLedState("ERROR");
       console.error("Error fetching message:", error);
     }
+    
   };
 
 
   const changeSpeed = async () => {
 
-    const url = new URL(baseUrl + "/speed");
+    const url = new URL(baseUrl + "/change_speed");
 
     url.searchParams.append("slider", sliderState); 
 
