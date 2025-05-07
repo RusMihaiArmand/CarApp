@@ -18,8 +18,32 @@ direction = 'STOP'
 
 #hostIp = '0.0.0.0'
 hostIp = '127.0.0.1'
+boardVal = 0
 
-@app.route('/change_led', methods=['GET'])
+
+@app.route('/state_val', methods=['GET'])
+def val_state():
+    global boardVal
+
+    return jsonify({"testVal":boardVal})
+
+
+
+@app.route('/post_data', methods=['POST'])
+def val_change():
+    global boardVal
+    data = request.get_json()  
+
+    if data and "testVal" in data:
+        boardVal = data["testVal"]
+        return jsonify({"status": "success", "boardVal": boardVal})
+    else:
+        return jsonify({"status": "error", "message": "testVal not provided"}), 400
+
+   
+    
+
+@app.route('/change_led', methods=['POST'])
 def led_change():
     global ledState
     ledState = not ledState
@@ -38,7 +62,7 @@ def led_state():
     return jsonify({"ledState":"OFF"})
 
 
-@app.route('/change_speed', methods=['GET'])
+@app.route('/change_speed', methods=['POST'])
 def motor_change():
     global speed, direction
 

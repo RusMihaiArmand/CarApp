@@ -8,6 +8,8 @@ const Command = () => {
   const [speed, setSpeed] = useState(0);
   const [mototDirection, setMotorDiction] = useState('STOP');
 
+  const [val, setVal] = useState(-1);
+
 
   const baseUrl = "http://127.0.0.1:5000"
 
@@ -44,15 +46,30 @@ const Command = () => {
       }
     };
 
+
+    const fetchVal = async () => {
+      try {
+        const response = await fetch(baseUrl + "/state_val");
+        const data = await response.json();
+        setVal(data.testVal);
+      } catch (error) {
+        console.error("Failed to fetch LED state:", error);
+      }
+    };
+
+
     fetchLedState();
     fetchSpeedState();
+    fetchVal();
   }, []);
 
 
 
   const changeState = async () => {
     try {
-      const response = await fetch(baseUrl + "/change_led");
+      const response = await fetch(baseUrl + "/change_led", {
+        method: "POST",
+      });
       const data = await response.json();
 
       console.log(data);
@@ -60,6 +77,22 @@ const Command = () => {
       setLedState(data.ledState);
     } catch (error) {
       setLedState("ERROR");
+      console.error("Error fetching message:", error);
+    }
+    
+  };
+
+
+  const getVal = async () => {
+    try {
+      const response = await fetch(baseUrl + "/state_val");
+      const data = await response.json();
+
+      console.log(data);
+
+      setVal(data.testVal);
+    } catch (error) {
+      setVal("ERROR");
       console.error("Error fetching message:", error);
     }
     
@@ -74,7 +107,9 @@ const Command = () => {
 
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: "POST",
+      });
       const data = await response.json();
 
       console.log(data);
@@ -129,6 +164,15 @@ const Command = () => {
       <p>SPEED: {speed} </p>
       <br></br><br></br>
       <p>DIRECTION: {mototDirection} </p>
+
+
+      <br></br><br></br><br></br>
+
+      <p> {val} </p>
+
+      <br></br>
+
+      <button className="buttonS1" onClick={getVal}> GET TEST VAL </button>
       
 
     </div>
