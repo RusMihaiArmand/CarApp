@@ -9,6 +9,9 @@ const Command = () => {
   const [mototDirection, setMotorDiction] = useState('STOP');
 
   const [val, setVal] = useState(-1);
+  const [temp, setTemp] = useState(0);
+  const [hum, setHum] = useState(0);
+  const [stops, setStops] = useState(0);
 
 
   const baseUrl = "http://127.0.0.1:5000"
@@ -61,6 +64,34 @@ const Command = () => {
     fetchLedState();
     fetchSpeedState();
     fetchVal();
+
+
+
+
+    const fetchEverything = async () => {
+      try {
+        const response = await fetch(baseUrl + "/get_all_values");
+        const data = await response.json();
+        setTemp(data.temp);
+        setHum(data.hum);
+        setStops(data.stops);
+        setSpeed(data.fan_speed);
+
+      } catch (error) {
+        console.error("Failed to fetch LED state:", error);
+      }
+    };
+
+
+
+    const intervalId = setInterval(() => {
+      fetchEverything();
+    }, 1000);
+
+
+    return () => clearInterval(intervalId);
+
+
   }, []);
 
 
@@ -101,7 +132,7 @@ const Command = () => {
 
   const changeSpeed = async () => {
 
-    const url = new URL(baseUrl + "/change_speed");
+    const url = new URL(baseUrl + "/change_fan_speed");
 
     url.searchParams.append("slider", sliderState); 
 
@@ -114,7 +145,7 @@ const Command = () => {
 
       console.log(data);
 
-      setSpeed(data.speed);
+      setSpeed(data.fan_speed);
       setMotorDiction(data.direction);
     } catch (error) {
       setSpeed(0);
@@ -149,8 +180,8 @@ const Command = () => {
       <input
         id="angle-speed"
         type="range"
-        min={-180}
-        max={180}
+        min={-100}
+        max={100}
         step={1}
         value={sliderState}
         onChange={(e) => setSliderState(Number(e.target.value))}
@@ -173,9 +204,21 @@ const Command = () => {
       <br></br>
 
       <button className="buttonS1" onClick={getVal}> GET TEST VAL </button>
+
+
+
+      <p>TEMPERATURE {temp} C</p> <br></br>
+      <p>HUMIDITY {hum} %</p> <br></br>
+      <p>FAN SPEED {speed} </p> <br></br>
+      <p>STOP #{stops} </p> <br></br>
+
+
       
 
     </div>
+
+
+    
 
 
 
