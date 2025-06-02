@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+
 
 const Command = () => {
 
@@ -6,65 +9,49 @@ const Command = () => {
   const [sliderState, setSliderState] = useState(0);
 
   const [speed, setSpeed] = useState(0);
-  const [mototDirection, setMotorDiction] = useState('STOP');
 
-  const [val, setVal] = useState(-1);
   const [temp, setTemp] = useState(0);
   const [hum, setHum] = useState(0);
   const [stops, setStops] = useState(0);
 
 
+  const [recentTemp, setRecentTemp] = useState([]);
+  const [recentHum, setRecentHum] = useState([]);
+  const [recentSpeed, setRecentSpeed] = useState([]);
+
+  const [fanControl, setFanControl] = useState('MANUAL');
+  const [carStatus, setCarStatus] = useState('STATIONARY');
+  
   const baseUrl = "http://127.0.0.1:5000"
 
 
   useEffect(() => {
-    const fetchLedState = async () => {
+    
+    const updateGraphs = async () => {
       try {
-        const response = await fetch(baseUrl + "/state_led");
+        const response = await fetch(baseUrl + "/get_graph_values");
         const data = await response.json();
-        setLedState(data.ledState);
+
+        var formattedData = data.temp_vals.map((temp, idx) => ({ name: idx, temp }));
+        setRecentTemp(formattedData);
+
+        formattedData = data.hum_vals.map((hum, idx) => ({ name: idx, hum }));
+        setRecentHum(formattedData);
+
+
+        formattedData = data.speed_vals.map((speed, idx) => ({ name: idx, speed }));
+        setRecentSpeed(formattedData);
+
+
       } catch (error) {
-        console.error("Failed to fetch LED state:", error);
+        console.error("Failed to fetch recents values; error - ", error);
       }
     };
 
-
-    const fetchSpeedState = async () => {
-      try {
-        const response = await fetch(baseUrl + "/state_speed");
-        const data = await response.json();
-        setSpeed(data.speed);
-        setMotorDiction(data.direction);
-
-        
-        if(data.direction=='BACKWARDS'){
-          setSliderState(-data.speed);
-        }
-        else{
-          setSliderState(data.speed);
-        }
-
-      } catch (error) {
-        console.error("Failed to fetch Speed state:", error);
-      }
-    };
-
-
-    const fetchVal = async () => {
-      try {
-        const response = await fetch(baseUrl + "/state_val");
-        const data = await response.json();
-        setVal(data.testVal);
-      } catch (error) {
-        console.error("Failed to fetch LED state:", error);
-      }
-    };
-
-
-    fetchLedState();
-    fetchSpeedState();
-    fetchVal();
-
+    // fetchLedState();
+    // fetchSpeedState();
+    // fetchVal();
+    // updateGraphs();
 
 
 
@@ -77,15 +64,42 @@ const Command = () => {
         setStops(data.stops);
         setSpeed(data.fan_speed);
 
+        if(data.car_moving == true)
+        {
+          setCarStatus('MOVING');
+        }
+        else
+        {
+          setCarStatus('STATIONARY');
+        }
+
       } catch (error) {
         console.error("Failed to fetch LED state:", error);
       }
     };
 
 
+    //to do
+    const fetchControlType = async () => {
+      try {
+        const response = await fetch(baseUrl + "/get_control_type");
+        const data = await response.json();
+
+        setFanControl(data.control_type);
+
+      } catch (error) {
+        console.error("Failed to fetch control type:", error);
+      }
+    };
+
+
+    fetchControlType();
+    fetchEverything();
+    updateGraphs();
 
     const intervalId = setInterval(() => {
       fetchEverything();
+      updateGraphs();
     }, 1000);
 
 
@@ -95,7 +109,7 @@ const Command = () => {
   }, []);
 
 
-
+  // to delete later
   const changeState = async () => {
     try {
       const response = await fetch(baseUrl + "/change_led", {
@@ -114,20 +128,44 @@ const Command = () => {
   };
 
 
-  const getVal = async () => {
+  
+  const changeControl = async () => {
     try {
-      const response = await fetch(baseUrl + "/state_val");
+      const response = await fetch(baseUrl + "/change_control_type", {
+        method: "POST",
+      });
+
       const data = await response.json();
 
       console.log(data);
 
-      setVal(data.testVal);
+      setFanControl(data.control_type);
     } catch (error) {
-      setVal("ERROR");
+      setFanControl("ERROR");
       console.error("Error fetching message:", error);
     }
     
   };
+
+
+
+  //to do
+  const moveCar = async () => {
+    try {
+      const response = await fetch(baseUrl + "/continue_car_movement", {
+        method: "POST",
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+    } catch (error) {
+      setFanControl("ERROR");
+      console.error("Error fetching message:", error);
+    }
+    
+  };
+
 
 
   const changeSpeed = async () => {
@@ -146,10 +184,8 @@ const Command = () => {
       console.log(data);
 
       setSpeed(data.fan_speed);
-      setMotorDiction(data.direction);
     } catch (error) {
       setSpeed(0);
-      setMotorDiction('STOP');
       console.error("Error fetching message:", error);
     }
   };
@@ -157,22 +193,33 @@ const Command = () => {
 
   return (
     <div className="commands">
-      <h1>COMMANDS</h1>
+      <h1 className="commandsTitle">COMMANDS</h1>
 
-      <br></br>
+      <br></br><br></br>
 
-      <p> {ledState} </p>
+      
+      
+      <p className="p_class2">Fan control type : {fanControl} </p>
 
-      <br></br>
+      
 
-      <button className="buttonS1" onClick={changeState}> CHANGE LED </button>
+      <button className="buttonS1" onClick={changeControl}> CHANGE CONTROL TYPE </button>
 
 
-      <br></br><br></br><br></br>
+      <br></br><br></br>
+
+
+      <p className="p_class2">Car status : {carStatus} </p>
+
+
+      <button className="buttonS1" onClick={moveCar}> CONTINUE MOVING </button>
+
+
+      <br></br><br></br>
 
 
       <label htmlFor="speed-slider" className="label1">
-        Angle: {sliderState}°
+        Speed: {sliderState} %
       </label>
 
       <br></br>
@@ -180,37 +227,70 @@ const Command = () => {
       <input
         id="angle-speed"
         type="range"
-        min={-100}
+        min={0}
         max={100}
         step={1}
         value={sliderState}
         onChange={(e) => setSliderState(Number(e.target.value))}
-        className="name1"
+        className="sliderClass"
       />
 
       <br></br>
       <button className="buttonS1" onClick={changeSpeed}> CHANGE SPEED </button> 
 
-      
-      <p>SPEED: {speed} </p>
+
       <br></br><br></br>
-      <p>DIRECTION: {mototDirection} </p>
 
 
-      <br></br><br></br><br></br>
 
-      <p> {val} </p>
+
+      <p className="p_class">TEMPERATURE : {temp} C</p> 
+      <p className="p_class">HUMIDITY : {hum} %</p> 
+      <p className="p_class">FAN SPEED : {speed} </p> 
+      <p className="p_class">STOP : #{stops} </p> 
+
 
       <br></br>
 
-      <button className="buttonS1" onClick={getVal}> GET TEST VAL </button>
 
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={recentTemp}
+        className="chart_back">
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" label={{ value: 'Time Step', position: 'insideBottomRight', offset: -5 }} />
+          <YAxis domain={[0, 60]} label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft' }} />
+          <Tooltip />
+          <Line type="monotone" dataKey="temp" stroke="#FF0000" />
+        </LineChart>
+      </ResponsiveContainer>
 
+      <br></br><br></br>
 
-      <p>TEMPERATURE {temp} C</p> <br></br>
-      <p>HUMIDITY {hum} %</p> <br></br>
-      <p>FAN SPEED {speed} </p> <br></br>
-      <p>STOP #{stops} </p> <br></br>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={recentHum}
+        className="chart_back">
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" label={{ value: 'Time Step', position: 'insideBottomRight', offset: -5 }} />
+          <YAxis domain={[0, 100]} label={{ value: 'Humidity (%)', angle: -90, position: 'insideLeft' }} />
+          <Tooltip />
+          <Line type="monotone" dataKey="hum" stroke="#0000FF" />
+        </LineChart>
+      </ResponsiveContainer>
+
+      <br></br><br></br>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={recentSpeed}
+        className="chart_back">
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" label={{ value: 'Time Step', position: 'insideBottomRight', offset: -5 }} />
+          <YAxis domain={[0, 100]} label={{ value: 'Speed (%)', angle: -90, position: 'insideLeft' }} />
+          <Tooltip />
+          <Line type="monotone" dataKey="speed" stroke="#000000" />
+        </LineChart>
+      </ResponsiveContainer>
+
+      <br></br><br></br>
 
 
       
